@@ -8,21 +8,26 @@ const pool = new Client({
   host: /*process.env.DATABASE_HOST ||*/ '127.0.0.1',
   port: /*process.env.DATABASE_PORT ||*/ 5432,
   database: /*process.env.DATABASE_NAME ||*/ 'mtaa',
-  password: /*process.env.DATABASE_PASSWORD ||*/ ''
+  password: /*process.env.DATABASE_PASSWORD ||*/ 'j4r0sl4v'
 });
 
 pool.connect();
 
 
 // Login
-app.get('/login/:username/:password', (req, res) => {
-  pool.query(`
+app.get('/fitme/login', (req, res) => 
+{
+  const login_query = `
           SELECT 
               Users.id
           FROM Users
-          WHERE Users.username = '${req.params.username}' AND Users.password = '${req.params.password}'
-          ;`, (err, response) => {
-    if(err) {
+          WHERE Users.username = '${req.body.username}' AND Users.password = '${req.body.password}'
+          ;
+          `;
+  pool.query(login_query, (err, response) => 
+  {
+    if(err) 
+    {
       res.send(err);
       return;
     }
@@ -31,20 +36,45 @@ app.get('/login/:username/:password', (req, res) => {
 })
 
 // Registration
-app.get('/registration/:username/:password/:email/:height/:weight/:gender/:role/:age/:firstname/:lastname/:dailykcal', (req, res) => {
-  pool.query(`
-        INSERT INTO Users ("id", username, "password", email, height, weight, gender, "role", age, firstname, lastname, dailykcal) 
-        VALUE
-            (uuid_in(md5(random()::text || random()::text)::cstring), '${req.paarams.username}', '${req.params.password}', '${req.params.email}', ${req.params.height}, ${req.params.weight}, '${req.params.gender}', '${req.params.role}', ${req.params.age}, '${req.params.firstname}', '${req.params.lastname}', ${req.params.dailykcal})
-        ;`, (err, response) => {
-    if(err){
+app.post('/fitme/registration', (req, res) => 
+{
+  const registration_query = `
+          INSERT INTO Users ("id", username, "password", email, height, weight, gender, "role", age, firstname, lastname, dailykcal) 
+          VALUE
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.username}', '${req.body.password}', '${req.body.email}', ${req.body.height}, ${req.body.weight}, '${req.body.gender}', '${req.body.role}', ${req.body.age}, '${req.body.firstname}', '${req.body.lastname}', ${req.body.dailykcal})
+          ;`;
+  pool.query(registration_query, (err, response) => 
+  {
+    if(err)
+    {
       res.send(err);
       return;
     }
     res.send("Succesfully regitered");
-  }
+  })
+})
 
-  )
+// Check if username already exists
+app.get('/fitme/username-check', (req, res) =>
+{
+  const username_check_query = `
+          SELECT 
+              Users.username
+          FROM Users
+          WHERE Users.username = '${req.query.username}';
+          `;
+  pool.query(username_check_query, (err, response) =>
+  {
+    if(err)
+    {
+      res.send(err)
+      return;
+    }
+    if (response == null)
+      res.send("Cool, username not exist a nieco neviem kokot");
+    else
+      res.send("JEBEK.. LOL");
+  })
 })
 
 app.get('/meals/:minimumcalorie', (req, res) => {
