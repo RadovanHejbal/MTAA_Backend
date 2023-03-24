@@ -8,109 +8,165 @@ const pool = new Client({
   host: /*process.env.DATABASE_HOST ||*/ '127.0.0.1',
   port: /*process.env.DATABASE_PORT ||*/ 5432,
   database: /*process.env.DATABASE_NAME ||*/ 'mtaa',
-  password: /*process.env.DATABASE_PASSWORD ||*/ ''
+  password: /*process.env.DATABASE_PASSWORD ||*/ 'j4r0sl4v'
 });
-
 pool.connect();
 
-
+/********** USERS **********/
 // Login
-app.get('/user/user-login', (req, res) => 
+app.get('/users/user-login', (req, res) => 
 {
   const login_query = `
           SELECT 
               Users.id
           FROM Users
           WHERE Users.username = '${req.body.username}' AND Users.password = '${req.body.password}'
-          ;
-          `;
+          ;`;
   pool.query(login_query, (err, response) => 
   {
     if(err) res.send(err);
     else if(response.rowCount != 0) res.send(response?.rows[0]);
-    else res.status(404).json({error: "user not found", message:"user with this username could not be found"});
-  })
-})
+    else res.status(404).json({error: "user not found", message:"User with this username could not be found!"});
+  });
+});
 
 // Registration
-app.post('/user/user-registration', (req, res) => 
+app.post('/users/user-registration', (req, res) => 
 {
   const registration_query = `
           INSERT INTO Users ("id", username, "password", email, height, weight, gender, "role", age, firstname, lastname, dailykcal) 
-          VALUE
+          VALUES
               (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.username}', '${req.body.password}', '${req.body.email}', ${req.body.height}, ${req.body.weight}, '${req.body.gender}', '${req.body.role}', ${req.body.age}, '${req.body.firstname}', '${req.body.lastname}', ${req.body.dailykcal})
           ;`;
   pool.query(registration_query, (err) => 
   {
     if(err) res.send(err);
     else res.send("OK");
-  })
-})
+  });
+});
+
+
+
+
+
+/*********** RECEPIES *************/
+// Get all recepies
+app.get('/recepies', (req, res) =>
+{
+  const recepies_query = `
+          SELECT *
+          FROM Recepies
+  `;
+  pool.query(recepies_query, (err, response) =>
+  {
+    if(err) res.send(err);
+    else if (response.rowCount != 0) res.send(response?.rows);
+    else res.status(404).json({error: "recepies empty", message:"There is no posted recepies!"});
+  });
+});
 
 // Create recepie
-app.post('/recepie/recepie-create', (req, res) =>
+app.post('/recepies/recepie-create', (req, res) =>
 {
   const create_recepie_query = `
-
-  `;
+          INSERT INTO Recepies ("id", title, ingrediences, process, upvotes, pictrue) 
+          VALUES
+            (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', '${req.body.ingrediences}', '${req.body.process}', 0, '${req.body.picture}')
+          ;`;
   pool.query(create_recepie_query, (err) =>
   {
     if(err) res.send(err);
     else res.send("OK");
-  })
-})
+  });
+});
 
 // Delete recepie
-app.delete('/recepie/recepie-delete', (req, res) =>
+app.delete('/recepies/recepie-delete', (req, res) =>
 {
   const delete_recepie_query = `
-  
-  `;
+          DELETE 
+          FROM Recepies
+          WHERE Recepies.id = '${req.body.id}'
+          ;`;
   pool.query(delete_recepie_query, (err) =>
   {
     if(err) res.send(err);
     else res.send("OK");
-  })
-})
+  });
+});
+
+
+
+
+
+/*********** FORUM *************/
+// Get all forums
+app.get('/forums', (req, res) =>
+{
+  const forums_query = `
+          SELECT *
+          FROM Forum_questions
+          ;`;
+  pool.query(forums_query, (err, response) =>
+  {
+    if(err) res.send(err);
+    else if (response.rowCount != 0) res.send(response?.rows);
+    else res.status(404).json({error: "forums empty", message:"There is no posted forums!"});
+  });
+});
 
 // Create forum
-app.post('/forum/forum-create', (req, res) =>
+app.post('/forums/forum-create', (req, res) =>
 {
   const create_forum_query = `
-
-  `;
+          INSERT INTO Forum_questions ("id", title, upvotes, owner_id, opened_at, closed_at, theme_id)
+          VALUES
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', 0, ${req.body.owner_id}, ${req.body.opened_at}, ${req.body.closed_at}, ${req.body.theme_id})
+          ;`;
   pool.query(create_forum_query, (err) =>
   {
     if(err) res.send(err);
     else res.send("OK");
-  })
-})
+  });
+});
 
-// Delete forum
-app.delete('/forum/forum-delete', (req, res) =>
+
+
+
+
+
+/*********** TRAINERS *************/
+// Get all trainers
+app.get('/trainers', (req, res) =>
 {
-  const delete_forum_query = `
-  
-  `;
-  pool.query(delete_forum_query, (err) =>
+  const trainer_query = `
+          SELECT *
+          FROM Coaches
+          ;`;
+  pool.query(trainer_query, (err, response) =>
   {
     if(err) res.send(err);
-    else res.send("OK");
-  })
-})
+    else if (response.rowCount != 0) res.send(response?.rows);
+    else res.status(404).json({error: "trainers empty", message:"There is no registered trainers!"});
+  });
+});
 
 // Add trainer
-app.post('/trainer/trainer-create', (req, res) =>
+app.post('/trainers/trainer-create', (req, res) =>
 {
   const create_trainer_query = `
-
-  `;
+          INSERT INTO Coaches ("id", user_id, specializaion, description)
+          VALUES
+              (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.user_id}, '${req.body.specializaion}, '${req.body.description}')
+          ;`;
   pool.query(create_trainer_query, (err) =>
   {
     if(err) res.send(err);
     else res.send("OK");
-  })
-})
+  });
+});
+
+
 
 
 
@@ -122,8 +178,8 @@ app.get('/meals/:minimumcalorie', (req, res) => {
       return;
     }
     res.send(response?.rows);
-  })
-})
+  });
+});
 
 
 // EXAMPLE */
