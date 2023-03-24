@@ -15,7 +15,7 @@ pool.connect();
 
 
 // Login
-app.get('/fitme/login', (req, res) => 
+app.get('/login', (req, res) => 
 {
   const login_query = `
           SELECT 
@@ -36,7 +36,7 @@ app.get('/fitme/login', (req, res) =>
 })
 
 // Registration
-app.post('/fitme/registration', (req, res) => 
+app.post('/registration', (req, res) => 
 {
   const registration_query = `
           INSERT INTO Users ("id", username, "password", email, height, weight, gender, "role", age, firstname, lastname, dailykcal) 
@@ -51,29 +51,6 @@ app.post('/fitme/registration', (req, res) =>
       return;
     }
     res.send("Succesfully regitered");
-  })
-})
-
-// Check if username already exists
-app.get('/fitme/username-check', (req, res) =>
-{
-  const username_check_query = `
-          SELECT 
-              Users.username
-          FROM Users
-          WHERE Users.username = '${req.query.username}';
-          `;
-  pool.query(username_check_query, (err, response) =>
-  {
-    if(err)
-    {
-      res.send(err)
-      return;
-    }
-    if (response == null)
-      res.send("Cool, username not exist a nieco neviem kokot");
-    else
-      res.send("JEBEK.. LOL");
   })
 })
 
