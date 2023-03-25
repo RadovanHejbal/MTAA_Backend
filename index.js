@@ -254,28 +254,6 @@ app.post('/trainers/trainer-create', (req, res) =>
 });
 
 
-app.get('/users/daily/:date/:userid', (req, res) => {
-  pool.query(`WITH calc_meals as (SELECT (meals.kcal * owned_meals.grams) as kcal, (meals.protein * owned_meals.grams) as protein,
-(meals.fat * owned_meals.grams) as fat, (meals.carbohydrates * owned_meals.grams) as carbs, meals.title,
-owned_meals.id, owned_meals.grams, owned_meals.owner_id
-FROM owned_meals
-JOIN meals ON (owned_meals.meal_id = meals.id)
-WHERE owned_meals.owner_id = ${req.params.userid} AND owned_meals.date = ${req.params.date}
-)
-SELECT ARRAY_AGG(JSON_BUILD_OBJECT('id', calc_meals.id, 'title', calc_meals.title, 'kcal', calc_meals.kcal,
-'protein', calc_meals.protein, 'fat', calc_meals.fat, 'carbs', calc_meals.carbs)), SUM(calc_meals.kcal),
-SUM(calc_meals.protein), SUM(calc_meals.fat), SUM(calc_meals.carbs)
-FROM calc_meals
-GROUP BY calc_meals.owner_id`, (err, response) => {
-  if(err) {
-    res.send(err);
-    return;
-  }
-  res.send(response.rows[0]);
-})
-})
-
-
 
 app.get('/meals/:minimumcalorie', (req, res) => {
   pool.query(`SELECT * FROM meals WHERE ${req.params.minimumcalorie} < meals.kcal`, (err, response) => {
