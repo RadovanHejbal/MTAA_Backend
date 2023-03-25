@@ -45,6 +45,85 @@ app.post('/users/user-registration', (req, res) =>
   });
 });
 
+// Daily kcal, protain, carbs, fat, activities for calcul
+app.get('/users/user-daily', (req, res) =>
+{
+  const daily_query = `
+          SELECT
+              Owned_meals.title,
+              Meals.kcal,
+              Meals.fat,
+              Meals.protein, 
+              Meals.carbohydrates,
+              Owned_activities.title,
+              Activities.kcal
+          FROM Owned_meals
+          JOIN Meals ON Meals.id = Owned_meals.meal_id
+          JOIN Owned_activities ON Owned_activities.owner_id = Owned_meals.owner_id
+          JOIN Activities ON Activities.id = Owned_activities.activity_id
+          WHERE Owned_meals.owner_id = ${req.body.owner_id}
+
+  ;`;
+  pool.query(daily_query, (err, response) =>
+  {
+    if(err) res.send(err);
+    else if(response.rowCount != 0) res.send(response?.rows);
+    else res.send("0");
+  });
+});
+
+
+
+
+
+/*********** MEALS *************/
+// Get meals id and name -> for searchbar
+app.get('/meals', (req, res) =>
+{
+  const meals_query = `
+          SELECT 
+              Meals.id,
+              Meals.title
+          FROM Meals
+          ;`;
+  pool.query(meals_query, (err, response) =>
+  {
+    if(err) res.send(err);
+    else res.send(response?.rows);
+  });
+});
+
+// Add choosen meal to owned meals
+app.post('/meals/owned_meals/add-meal', (req, res) =>
+{
+  const add_meal_query = `
+          INSERT INTO Owned_meals ("id", owner_id, meal_id, grams, "date")
+          VALUES
+              (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.owner_id}, ${req.body.meal_id}, ${req.body.grams}, ${req.body.date});
+          ;`;
+  pool.query(add_meal_query, (err) =>
+  {
+    if(err) res.send(err);
+    else res.send("OK");
+  });
+});
+
+// Delete choosen meal from owned meals
+app.delete('/meals/owned-meals/delete-meal', (req, res) =>
+{
+  const delete_meal_query = `
+          DELETE 
+          FROM Owned_meals
+          WHERE Owned_meals.id = '${req.body.id}'
+          ;`;
+  pool.query(delete_meal_query, (err) =>
+  {
+    if(err) res.send(err);
+    else res.send("OK");
+  });
+});
+
+
 
 
 
