@@ -222,29 +222,77 @@ app.post('/forums/forum-create', (req, res) =>
 
 
 
-/*********** TRAINERS *************/
-// Get all trainers
-app.get('/trainers', (req, res) =>
+/*********** COACHES *************/
+// Get all coaches
+app.get('/coaches', (req, res) =>
 {
-  const trainer_query = `
-          SELECT *
+  const coaches_query = `
+          SELECT
+              Users.name,
+              Users.lastname,
+              Users.age,
+              Coaches.id,
+              Coaches.specialization,
+              Coaches.description
           FROM Coaches
+          JOIN Users ON Users.id = Coaches.user_id
           ;`;
-  pool.query(trainer_query, (err, response) =>
+  pool.query(coaches_query, (err, response) =>
   {
     if(err) res.send(err);
     else if (response.rowCount != 0) res.send(response?.rows);
-    else res.status(404).json({error: "trainers empty", message:"There is no registered trainers!"});
+    else res.status(404).json({error: "coaches empty", message:"There is no registered coaches!"});
   });
 });
 
-// Add trainer
-app.post('/trainers/trainer-create', (req, res) =>
+// Add coache
+app.post('/coaches/coache-create', (req, res) =>
 {
-  const create_trainer_query = `
+  const create_coache_query = `
           INSERT INTO Coaches ("id", user_id, specializaion, description)
           VALUES
               (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.user_id}, '${req.body.specializaion}, '${req.body.description}')
+          ;`;
+  pool.query(create_coache_query, (err) =>
+  {
+    if(err) res.send(err);
+    else res.send("OK");
+  });
+});
+
+/********** OWNED COACHES ************/
+// Get owned trainers
+app.get('/coaches/owned_coaches', (req, res) =>
+{
+  const owned_coaches_query = `
+          SELECT
+              Relations.id,
+              Users.name,
+              Users.lastname,
+              Users.age,
+              Coaches.id,
+              Coaches.specialization,
+              Coaches.description
+          FROM Relations
+          JOIN Coaches ON Coaches.id = Relations.coach_id
+          JOIN Users ON Users.id = Coaches.user_id
+          WHERE Relations.user_id = ${req.body.user_id}
+          ;`;
+  pool.query(owned_coaches_query, (err, response) =>
+  {
+    if(err) res.send(err);
+    else if (response.rowCount != 0) res.send(response?.rows);
+    else res.status(404).json({error: "coaches empty", message:"You did not buy andy trainer!"});
+  });
+});
+
+// Add choosen trainer to owned trainer
+app.post('/coaches/owned_coaches/add-coache', (req, res) =>
+{
+  const create_trainer_query = `
+          INSERT INTO Relations ("id", coach_id, user_id)
+          VALUES
+              (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.coach_id}, ${req.body.user_id})
           ;`;
   pool.query(create_trainer_query, (err) =>
   {
@@ -253,20 +301,25 @@ app.post('/trainers/trainer-create', (req, res) =>
   });
 });
 
-
-
-app.get('/meals/:minimumcalorie', (req, res) => {
-  pool.query(`SELECT * FROM meals WHERE ${req.params.minimumcalorie} < meals.kcal`, (err, response) => {
-    if(err) {
-      res.send(err);
-      return;
-    }
-    res.send(response?.rows);
+// Delete owned trainer
+app.delete('/coaches/owned_coaches/delete-coache', (req, res) =>
+{
+  const delete_coache_query = `
+          DELETE 
+          FROM Relations
+          WHERE Relations.id = '${req.body.id}'
+          ;`;
+  pool.query(delete_coache_query, (err) =>
+  {
+    if(err) res.send(err);
+    else res.send("OK");
   });
 });
 
 
-// EXAMPLE */
+
+
+
 
 app.listen(8000, () => {
   console.log("Listening on port: 8000");
