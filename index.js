@@ -18,7 +18,7 @@ app.get('/users/user-login', (req, res) =>
 {
   const login_query = `
           SELECT 
-              Users.id
+              *
           FROM Users
           WHERE Users.username = '${req.body.username}' AND Users.password = '${req.body.password}'
           ;`;
@@ -217,6 +217,17 @@ app.post('/forums/forum-create', (req, res) =>
   });
 });
 
+// Closing forum question
+app.update('/forums/forum-close/:date/:forumid', (req, res) => {
+  pool.query(`UPDATE forum_questions SET closed_at = ${req.params.date} WHERE id = ${req.params.forumid}`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send("OK");
+  })
+})
+
 
 
 
@@ -245,7 +256,7 @@ app.get('/coaches', (req, res) =>
   });
 });
 
-// Add coache
+// Add coach to coach list by admin
 app.post('/coaches/coache-create', (req, res) =>
 {
   const create_coache_query = `
