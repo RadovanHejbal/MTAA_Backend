@@ -1,3 +1,10 @@
+/*
+  POZNAMKY:
+  -premenovat vo coach_messages conversationid na relationid a vymazat tabulku conversations
+  -pridat date do coach_messages
+*/
+
+
 const { response } = require("express");
 const express = require("express");
 const app = express();
@@ -77,8 +84,7 @@ app.get('/users/daily/:date/:userid', (req, res) =>
   pool.query(daily_query, (err, response) =>
   {
     if(err) res.send(err);
-    else if(response.rowCount != 0) res.send(response?.rows[0]);
-    else res.send("0");
+    else res.send(response?.rows[0]);
   });
 });
 
@@ -147,8 +153,7 @@ app.get('/recepies', (req, res) =>
   pool.query(recepies_query, (err, response) =>
   {
     if(err) res.send(err);
-    else if (response.rowCount != 0) res.send(response?.rows);
-    else res.status(404).json({error: "recepies empty", message:"There is no posted recepies!"});
+    else res.send(response?.rows);
   });
 });
 
@@ -197,8 +202,7 @@ app.get('/forums', (req, res) =>
   pool.query(forums_query, (err, response) =>
   {
     if(err) res.send(err);
-    else if (response.rowCount != 0) res.send(response?.rows);
-    else res.status(404).json({error: "forums empty", message:"There is no posted forums!"});
+    else res.send(response?.rows);
   });
 });
 
@@ -228,6 +232,30 @@ app.update('/forums/forum-close/:date/:forumid', (req, res) => {
   })
 })
 
+// Add message to forum_question
+app.post('/forums/add-message', (req, res) => {
+  pool.query(`INSERT INTO forum_messages ("id", forum_question_id, user_id, text, coach_id)
+              VALUES (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.forumid}', '${req.body.userid}', '${req.body.text}', ${req.body.coachid})`, (err, response) => {
+                if(err) {
+                  res.send(err);
+                  return;
+                }
+                res.send("OK");
+              })
+})
+
+// Get forum_question messages by order
+app.get('/forums/get-messages/:forumquestionid', (req,res) => {
+  pool.query(`SELECT forum_messages.id, users.username, forum_messages.text, forum_messages.coach_id FROM forum_messages
+  JOIN users ON (users.id = forum_messages.user_id)
+  WHERE forum_question_id = ${req.params.forumquestionid}`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send(response?.rows);
+  })
+})
 
 
 
@@ -251,8 +279,7 @@ app.get('/coaches', (req, res) =>
   pool.query(coaches_query, (err, response) =>
   {
     if(err) res.send(err);
-    else if (response.rowCount != 0) res.send(response?.rows);
-    else res.status(404).json({error: "coaches empty", message:"There is no registered coaches!"});
+    else res.send(response?.rows);
   });
 });
 
@@ -292,8 +319,7 @@ app.get('/coaches/owned_coaches', (req, res) =>
   pool.query(owned_coaches_query, (err, response) =>
   {
     if(err) res.send(err);
-    else if (response.rowCount != 0) res.send(response?.rows);
-    else res.status(404).json({error: "coaches empty", message:"You did not buy andy trainer!"});
+    else res.send(response?.rows);
   });
 });
 
@@ -327,6 +353,52 @@ app.delete('/coaches/owned_coaches/delete-coache', (req, res) =>
   });
 });
 
+// Send message 
+app.post('/coaches/send-message', (req, res) => {
+  pool.query(`INSERT INTO coach_messages (id, text, owner_id, relation_id) 
+  VALUES (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.text}, ${req.body.ownerid}, ${req.body.relationid})`, (err,response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send("OK");
+  })
+})
+
+// Get all messages from conversation
+app.get('/coaches/conversation-messages/:relationid', (req, res) => {
+  pool.query(`SELECT * FROM coach_messages WHERE relation_id = ${rqe.params.relationid}}`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send(response?.rows);
+  })
+})
+
+// Coach get all clients
+app.get('/coaches/owned_coaches', (req, res) =>
+{
+  const owned_coaches_query = `
+          SELECT
+              Relations.id,
+              Users.name,
+              Users.lastname,
+              Users.age,
+              Coaches.id,
+              Coaches.specialization,
+              Coaches.description
+          FROM Relations
+          JOIN Coaches ON Coaches.id = Relations.coach_id
+          JOIN Users ON Users.id = Coaches.user_id
+          WHERE Relations.coach_id = ${req.body.coachid}
+          ;`;
+  pool.query(owned_coaches_query, (err, response) =>
+  {
+    if(err) res.send(err);
+    else res.send(response?.rows);
+  });
+});
 
 
 
