@@ -384,12 +384,8 @@ app.get('/coaches/owned_coaches', (req, res) =>
               Relations.id,
               Users.name,
               Users.lastname,
-              Users.age,
-              Coaches.id,
-              Coaches.specialization,
-              Coaches.description
+              Users.age
           FROM Relations
-          JOIN Coaches ON Coaches.id = Relations.coach_id
           JOIN Users ON Users.id = Coaches.user_id
           WHERE Relations.coach_id = ${req.body.coachid}
           ;`;
