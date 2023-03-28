@@ -1,10 +1,3 @@
-/*
-  POZNAMKY:
-  -premenovat vo coach_messages conversationid na relationid a vymazat tabulku conversations
-  -pridat date do coach_messages
-  -prerobit search mealov a spravit search activities
-*/
-
 const bodyParser = require('body-parser');
 const express = require("express");
 const app = express();
