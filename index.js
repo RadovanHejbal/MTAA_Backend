@@ -2,6 +2,7 @@
   POZNAMKY:
   -premenovat vo coach_messages conversationid na relationid a vymazat tabulku conversations
   -pridat date do coach_messages
+  -prerobit search mealov a spravit search activities
 */
 
 
@@ -140,6 +141,36 @@ app.delete('/meals/owned-meals/delete-meal', (req, res) =>
 });
 
 
+/*********** ACTIVITIES ************/
+// add chosen activity to owned activies
+app.post('/activities/owned/add-activity', (req, res) =>
+{
+  const add_activity = `
+          INSERT INTO Owned_meals ("id", owner_id, activity_id, time_amount, "date")
+          VALUES
+              (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.owner_id}, ${req.body.activityid}, ${req.body.time}, ${req.body.date});
+          ;`;
+  pool.query(add_activity, (err) =>
+  {
+    if(err) res.send(err);
+    else res.send("OK");
+  });
+});
+
+// delete owned meal
+app.delete('/activities/owned/delete-activity', (req, res) =>
+{
+  const deleteActivity = `
+          DELETE 
+          FROM owned_activities
+          WHERE id = '${req.body.id}'
+          ;`;
+  pool.query(deleteActivity, (err) =>
+  {
+    if(err) res.send(err);
+    else res.send("OK");
+  });
+});
 
 
 /*********** RECEPIES *************/
