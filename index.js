@@ -5,11 +5,13 @@
   -prerobit search mealov a spravit search activities
 */
 
-
-const { response } = require("express");
+const bodyParser = require('body-parser');
 const express = require("express");
 const app = express();
 const { Client } = require("pg");
+
+app.use(express.json());
+app.use(bodyParser.json());
 
 const pool = new Client({
   user: /*process.env.DATABASE_USER ||*/ 'postgres',
@@ -52,6 +54,18 @@ app.post('/users/user-registration', (req, res) =>
     else res.send("OK");
   });
 });
+
+// Username change
+app.put('/users/change-username', (req, res) => {
+  console.log(req.body.username, req.body.id);
+  pool.query(`UPDATE users SET username = '${req.body.username}' WHERE id = '${req.body.id}';`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send("OK");
+  })
+})
 
 // Daily kcal, protain, carbs, fat, activities for calcul
 app.get('/users/daily/:date/:userid', (req, res) =>
@@ -274,7 +288,7 @@ app.post('/forums/forum-create', (req, res) =>
 });
 
 // Closing forum question
-app.update('/forums/forum-close/:date/:forumid', (req, res) => {
+app.put('/forums/forum-close/:date/:forumid', (req, res) => {
   pool.query(`UPDATE forum_questions SET closed_at = ${req.params.date} WHERE id = ${req.params.forumid}`, (err, response) => {
     if(err) {
       res.send(err);
