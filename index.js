@@ -110,6 +110,17 @@ app.get('/meals', (req, res) =>
   });
 });
 
+// meal details
+app.get('/meals/details/:id', (req, res) => {
+  pool.query(`SELECT * FROM meals WHERE id = ${req.params.id}`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send(response?.rows[0]);
+  })
+})
+
 // Add choosen meal to owned meals
 app.post('/meals/owned_meals/add-meal', (req, res) =>
 {
@@ -142,6 +153,16 @@ app.delete('/meals/owned-meals/delete-meal', (req, res) =>
 
 
 /*********** ACTIVITIES ************/
+app.get('/activities/details/:id', (req, res) => {
+  pool.query(`SELECT * FROM activities WHERE id = ${req.params.id}`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send(response?.rows[0]);
+  })
+})
+
 // add chosen activity to owned activies
 app.post('/activities/owned/add-activity', (req, res) =>
 {
@@ -241,9 +262,9 @@ app.get('/forums', (req, res) =>
 app.post('/forums/forum-create', (req, res) =>
 {
   const create_forum_query = `
-          INSERT INTO Forum_questions ("id", title, upvotes, owner_id, opened_at, closed_at, theme_id)
+          INSERT INTO Forum_questions ("id", title, upvotes, owner_id, opened_at, theme_id)
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', 0, ${req.body.owner_id}, ${req.body.opened_at}, ${req.body.closed_at}, ${req.body.theme_id})
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', 0, ${req.body.owner_id}, ${req.body.opened_at}, ${req.body.theme_id})
           ;`;
   pool.query(create_forum_query, (err) =>
   {
