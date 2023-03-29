@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
 
+// search for activities
+router.get('/search', (req, res) => {
+  pool.query(`SELECT id, title FROM activities`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send(response?.rows);
+  })
+})
+
 
 // details about activity
 router.get('/details/:id', (req, res) => {
