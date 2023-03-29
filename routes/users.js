@@ -62,15 +62,32 @@ router.put('/change-username', (req, res) => {
                 FROM owned_meals
                 JOIN meals ON (owned_meals.meal_id = meals.id)
                 WHERE owned_meals.owner_id = ${req.params.userid} AND owned_meals.date = ${req.params.date}
+            ), calc_activities AS
+            (
+                SELECT
+                (
+                    (activities.kcal * owned_activities.time_amount) AS kcal,
+                    activities.title,
+                    owned_activities.id,
+                    owned_activities.time_amount,
+                    owned_activities.owner_id
+                )
+                FROM owned_activities
+                JOIN activities ON activities.id = owned_activities.activity_id
+                WHERE owned_activities.owner_id = ${req.params.userid} AND owned_activities.date = ${req.params.date}
             )
             SELECT 
-                ARRAY_AGG(JSON_BUILD_OBJECT('id', calc_meals.id, 'title', calc_meals.title, 'kcal', calc_meals.kcal,
+                ARRAY_AGG(JSON_BUILD_OBJECT('id', calc_meals.id, 'title', calc_meals.title, 'kcal', calc_meals.kcal, 'grams', calc_meals.grams,
                                             'protein', calc_meals.protein, 'fat', calc_meals.fat, 'carbs', calc_meals.carbs)), 
+                ARRAY_AGG(JSON_BUILD_OBJECT('id', calc_activities.id, 'title', calc_activities.title, 'kcal', calc_activities.kcal, 
+                                            'time_amount', calc_activities.time_amount),
+                SUM(calc_activities.kcal),
                 SUM(calc_meals.kcal),
                 SUM(calc_meals.protein), 
                 SUM(calc_meals.fat), 
                 SUM(calc_meals.carbs)
             FROM calc_meals
+            JOIN calc_activities ON calc_activities.owner_id = calc_meals.owner_id
             GROUP BY calc_meals.owner_id
             ;`;
     pool.query(daily_query, (err, response) =>
