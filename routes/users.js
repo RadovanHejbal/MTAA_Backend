@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
 
-router.get('/login', (req, res) => 
+router.post('/login', (req, res) => 
 {
   const login_query = `
           SELECT 
