@@ -23,7 +23,7 @@ router.post('/registration', (req, res) =>
   const registration_query = `
           INSERT INTO Users ("id", username, "password", email, height, weight, gender, "role", age, firstname, lastname, dailykcal) 
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.username}', '${req.body.password}', '${req.body.email}', ${req.body.height}, ${req.body.weight}, '${req.body.gender}', '${req.body.role}', ${req.body.age}, '${req.body.firstname}', '${req.body.lastname}', ${req.body.dailykcal})
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.username}', '${req.body.password}', '${req.body.email}', ${req.body.height}, ${req.body.weight}, '${req.body.gender}', 'user', ${req.body.age}, '${req.body.firstname}', '${req.body.lastname}', 0)
           ;`;
   pool.query(registration_query, (err) => 
   {
