@@ -19,9 +19,9 @@ router.get('/', (req, res) =>
 
 // meal details
 router.get('/details/:id', (req, res) => {
-  pool.query(`SELECT * FROM meals WHERE id = ${req.params.id}`, (err, response) => {
+  pool.query(`SELECT * FROM meals WHERE id = '${req.params.id}';`, (err, response) => {
     if(err) {
-      res.send(err);
+      res.status(404).json(err);
       return;
     }
     res.send(response?.rows[0]);
@@ -29,16 +29,18 @@ router.get('/details/:id', (req, res) => {
 })
 
 // Add choosen meal to owned meals
-router.post('/owned_meals/add', (req, res) =>
+router.post('/add', (req, res) =>
 {
+  const date = new Date(req.body.date);
+  const formattedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString();
   const add_meal_query = `
           INSERT INTO Owned_meals ("id", owner_id, meal_id, grams, "date")
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.owner_id}, ${req.body.meal_id}, ${req.body.grams}, ${req.body.date});
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.ownerId}', '${req.body.mealId}', ${req.body.grams}, '${formattedDate}');
           ;`;
-  pool.query(add_meal_query, (err) =>
+  pool.query(add_meal_query, (err, response) =>
   {
-    if(err) res.send(err);
+    if(err) res.status(400).json(err);
     else res.send("OK");
   });
 });
@@ -51,7 +53,7 @@ router.delete('/owned-meals/delete', (req, res) =>
           FROM Owned_meals
           WHERE Owned_meals.id = '${req.body.id}'
           ;`;
-  pool.query(delete_meal_query, (err) =>
+  pool.query(delete_meal_query, (err, response) =>
   {
     if(err) res.send(err);
     else res.send("OK");
