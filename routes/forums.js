@@ -8,6 +8,7 @@ router.get('/', (req, res) =>
   const forums_query = `
           SELECT *
           FROM Forum_questions
+          ORDER BY Forum_questions.upvotes DESC
           ;`;
   pool.query(forums_query, (err, response) =>
   {
@@ -24,7 +25,7 @@ router.post('/create', (req, res) =>
   const create_forum_query = `
           INSERT INTO Forum_questions ("id", title, upvotes, owner_id, opened_at, closed_at, theme_id)
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', 0, '${req.body.owner_id}', '${formattedDate}', null, '${req.body.theme_id}')
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', 0, '${req.body.owner_id}', '${formattedDate}', null, null)
           ;`;
   pool.query(create_forum_query, (err) =>
   {
@@ -41,13 +42,26 @@ router.put('/close/:date/:forumid', (req, res) => {
       return;
     }
     res.send("OK");
-  })
-})
+  });
+});
+
+router.put('/vote-update/:forumId', (req, res) => {
+  var voteUpdate = `UPDATE forum_questions SET upvotes = ${req.body.votes} WHERE "id" = '${req.params.forumId}'`;
+  pool.query(voteUpdate, (err, response) =>{
+    if(err){
+      res.send(err);
+      return;
+    }
+    res.send("OK");
+  });
+});
 
 // Add message to forum_question
 router.post('/add-message', (req, res) => {
-  pool.query(`INSERT INTO forum_messages ("id", forum_question_id, user_id, text, coach_id)
-              VALUES (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.forumid}', '${req.body.userid}', '${req.body.text}', ${req.body.coachid})`, (err, response) => {
+  var coach_id = null;
+  if(req.body.coache_id != "") coach_id = `'${req.body.coache_id}'`;
+  pool.query(`INSERT INTO forum_message ("id", forum_question_id, user_id, text, coach_id)
+              VALUES (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.forumid}', '${req.body.userid}', '${req.body.text}', ${coach_id})`, (err, response) => {
                 if(err) {
                   res.send(err);
                   return;
@@ -58,9 +72,9 @@ router.post('/add-message', (req, res) => {
 
 // Get forum_question messages by order
 router.get('/get-messages/:forumquestionid', (req,res) => {
-  pool.query(`SELECT forum_messages.id, users.username, forum_messages.text, forum_messages.coach_id FROM forum_messages
-  JOIN users ON (users.id = forum_messages.user_id)
-  WHERE forum_question_id = ${req.params.forumquestionid}`, (err, response) => {
+  pool.query(`SELECT * FROM forum_message
+  JOIN users ON (users.id = forum_message.user_id)
+  WHERE forum_question_id = '${req.params.forumquestionid}'`, (err, response) => {
     if(err) {
       res.send(err);
       return;

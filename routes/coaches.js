@@ -137,4 +137,15 @@ router.get('/owned-clients', (req, res) =>
   });
 });
 
+// Get relations
+router.get('/relations/:userId', (req, res) => {
+  pool.query(`SELECT coach_id from relations where user_id = '${req.params.userId}';`, (err, response) => {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    res.send(response?.rows);
+  })
+})
+
 module.exports = router;
