@@ -19,10 +19,12 @@ router.get('/', (req, res) =>
 // Create forum
 router.post('/create', (req, res) =>
 {
+  const opened_at = new Date(req.body.opened_at);
+  const formattedDate = new Date(opened_at.getTime() - (opened_at.getTimezoneOffset() * 60000)).toISOString();
   const create_forum_query = `
-          INSERT INTO Forum_questions ("id", title, upvotes, owner_id, opened_at, theme_id)
+          INSERT INTO Forum_questions ("id", title, upvotes, owner_id, opened_at, closed_at, theme_id)
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', 0, ${req.body.owner_id}, ${req.body.opened_at}, ${req.body.theme_id})
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.title}', 0, '${req.body.owner_id}', '${formattedDate}', null, '${req.body.theme_id}')
           ;`;
   pool.query(create_forum_query, (err) =>
   {
