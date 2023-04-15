@@ -72,7 +72,7 @@ router.post('/add-message', (req, res) => {
 
 // Get forum_question messages by order
 router.get('/get-messages/:forumquestionid', (req,res) => {
-  pool.query(`SELECT * FROM forum_message
+  pool.query(`SELECT forum_message.id, forum_message.text, forum_message.coach_id, users.username, forum_message.user_id FROM forum_message
   JOIN users ON (users.id = forum_message.user_id)
   WHERE forum_question_id = '${req.params.forumquestionid}'`, (err, response) => {
     if(err) {
