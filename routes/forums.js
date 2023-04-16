@@ -45,6 +45,7 @@ router.put('/close/:date/:forumid', (req, res) => {
   });
 });
 
+// Update votes
 router.put('/vote-update/:forumId', (req, res) => {
   var voteUpdate = `UPDATE forum_questions SET upvotes = ${req.body.votes} WHERE "id" = '${req.params.forumId}'`;
   pool.query(voteUpdate, (err, response) =>{
