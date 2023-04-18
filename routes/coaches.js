@@ -148,4 +148,14 @@ router.get('/relations/:userId', (req, res) => {
   })
 })
 
+router.get('/is-coach/:id', (req, res) => {
+  pool.query(`SELECT * FROM coaches WHERE user_id = '${req.params.id}'`, (err, response) => {
+    if(err || response.rowCount == 0) {
+      res.status(404).json(err);
+      return;
+    }
+    res.send(response?.rows[0]);
+  })
+})
+
 module.exports = router;

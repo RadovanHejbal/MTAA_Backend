@@ -36,25 +36,27 @@ router.post('/add', (req, res) =>
   const add_meal_query = `
           INSERT INTO Owned_meals ("id", owner_id, meal_id, grams, "date")
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.ownerId}', '${req.body.mealId}', ${req.body.grams}, '${formattedDate}');
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.ownerId}', '${req.body.mealId}', ${req.body.grams}, '${formattedDate}')
+          RETURNING *
           ;`;
   pool.query(add_meal_query, (err, response) =>
   {
     if(err) res.status(400).json(err);
-    else res.send("OK");
+    else res.send(response.rows[0]);
   });
 });
 
 // Delete choosen meal from owned meals
-router.delete('/owned-meals/delete', (req, res) =>
+router.delete('/owned-meals/delete/:id', (req, res) =>
 {
   const delete_meal_query = `
           DELETE 
           FROM Owned_meals
-          WHERE Owned_meals.id = '${req.body.id}'
+          WHERE Owned_meals.id = '${req.params.id}'
           ;`;
   pool.query(delete_meal_query, (err, response) =>
   {
+    console.log("SOM TU");
     if(err) res.send(err);
     else res.send("OK");
   });
