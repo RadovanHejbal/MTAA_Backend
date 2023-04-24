@@ -35,8 +35,10 @@ router.post('/create', (req, res) =>
 });
 
 // Closing forum question
-router.put('/close/:date/:forumid', (req, res) => {
-  pool.query(`UPDATE forum_questions SET closed_at = ${req.params.date} WHERE id = ${req.params.forumid}`, (err, response) => {
+router.put('/close/:id', (req, res) => {
+  const closed_at = new Date(req.body.closed_at);
+  const formattedDate = new Date(closed_at.getTime() - (closed_at.getTimezoneOffset() * 60000)).toISOString();
+  pool.query(`UPDATE forum_questions SET closed_at = '${formattedDate}' WHERE id = '${req.params.id}'`, (err, response) => {
     if(err) {
       res.send(err);
       return;
