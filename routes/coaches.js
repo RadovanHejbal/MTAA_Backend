@@ -8,11 +8,11 @@ router.get('/', (req, res) =>
 {
   const coaches_query = `
           SELECT
-              Users.name,
+              Users.firstname,
               Users.lastname,
               Users.age,
               Coaches.id,
-              Coaches.specialization,
+              Coaches.specializaion,
               Coaches.description
           FROM Coaches
           JOIN Users ON Users.id = Coaches.user_id
@@ -41,40 +41,40 @@ router.post('/coach-create', (req, res) =>
 
 /********** OWNED COACHES ************/
 // Get owned trainers
-router.get('/owned-coaches', (req, res) =>
+router.get('/owned-coaches/:id', (req, res) =>
 {
   const owned_coaches_query = `
           SELECT
-              Relations.id,
-              Users.name,
-              Users.lastname,
-              Users.age,
-              Coaches.id,
-              Coaches.specialization,
-              Coaches.description
-          FROM Relations
-          JOIN Coaches ON Coaches.id = Relations.coach_id
-          JOIN Users ON Users.id = Coaches.user_id
-          WHERE Relations.user_id = ${req.body.user_id}
+              relations.id,
+              users.firstname,
+              users.lastname,
+              users.age,
+              coaches.specializaion
+          FROM relations
+          JOIN coaches ON coaches.id = relations.coach_id
+          JOIN users ON users.id = coaches.user_id
+          WHERE relations.user_id = '${req.params.id}'
           ;`;
   pool.query(owned_coaches_query, (err, response) =>
   {
-    if(err) res.send(err);
+    if(err) {
+      res.status(404).json(err);
+    }
     else res.send(response?.rows);
   });
 });
 
 // Add choosen trainer to owned trainer
-router.post('/owned-coaches/add-coache', (req, res) =>
+router.post('/owned-coaches/add', (req, res) =>
 {
   const create_trainer_query = `
           INSERT INTO Relations ("id", coach_id, user_id)
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.coach_id}, ${req.body.user_id})
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.coachId}', '${req.body.userId}')
           ;`;
   pool.query(create_trainer_query, (err) =>
   {
-    if(err) res.send(err);
+    if(err) res.status(410).json(err);
     else res.send("OK");
   });
 });
@@ -108,9 +108,10 @@ router.post('/send-message', (req, res) => {
 
 // Get all messages from conversation
 router.get('/conversation-messages/:relationid', (req, res) => {
-  pool.query(`SELECT * FROM coach_messages WHERE relation_id = ${rqe.params.relationid}}`, (err, response) => {
+  console.log(req.params.relationid);
+  pool.query(`SELECT * FROM coach_messages WHERE relation_id = '${req.params.relationid}' ORDER BY coach_messages.date`, (err, response) => {
     if(err) {
-      res.send(err);
+      res.status(404).json(err);
       return;
     }
     res.send(response?.rows);
@@ -151,6 +152,16 @@ router.get('/relations/:userId', (req, res) => {
 router.get('/is-coach/:id', (req, res) => {
   pool.query(`SELECT * FROM coaches WHERE user_id = '${req.params.id}'`, (err, response) => {
     if(err || response.rowCount == 0) {
+      res.status(404).json(err);
+      return;
+    }
+    res.send(response?.rows[0]);
+  })
+})
+
+router.get(`/details/:id`, (req, res) => {
+  pool.query(`SELECT coaches.id, coaches.specializaion, coaches.description, users.firstname, users.lastname, users.age FROM coaches JOIN users ON (coaches.user_id = users.id) WHERE coaches.id = '${req.params.id}'`, (err, response) => {
+    if(err) {
       res.status(404).json(err);
       return;
     }
