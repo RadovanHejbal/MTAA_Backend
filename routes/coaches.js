@@ -119,21 +119,22 @@ router.get('/conversation-messages/:relationid', (req, res) => {
 })
 
 // Coach get all clients
-router.get('/owned-clients', (req, res) =>
+router.get('/owned-clients/:id', (req, res) =>
 {
+  console.log(req.params.id);
   const owned_coaches_query = `
           SELECT
               Relations.id,
-              Users.name,
+              Users.firstname,
               Users.lastname,
               Users.age
           FROM Relations
-          JOIN Users ON Users.id = Coaches.user_id
-          WHERE Relations.coach_id = ${req.body.coachid}
+          JOIN Users ON Users.id = Relations.user_id
+          WHERE Relations.coach_id = '${req.params.id}'
           ;`;
   pool.query(owned_coaches_query, (err, response) =>
   {
-    if(err) res.send(err);
+    if(err) res.status(410).json(err);
     else res.send(response?.rows);
   });
 });

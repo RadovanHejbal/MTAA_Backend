@@ -31,14 +31,14 @@ router.get('/details/:id', (req, res) => {
     const date = new Date(req.body.date);
     const formattedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString();
     const add_activity = `
-            INSERT INTO Owned_meals ("id", owner_id, activity_id, time_amount, "date")
+            INSERT INTO Owned_activities ("id", owner_id, activity_id, time_amount, "date")
             VALUES
-                (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.ownerId}', '${req.body.activityId}', ${req.body.time}, '${formattedDate}');
-            ;`;
-    pool.query(add_activity, (err) =>
+                (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.ownerId}', '${req.body.activityId}', ${req.body.time}, '${formattedDate}')
+            RETURNING *;`;
+    pool.query(add_activity, (err, response) =>
     {
       if(err) res.status(410).json(err);
-      else res.send("OK");
+      else res.send(response.rows[0]);
     });
   });
   

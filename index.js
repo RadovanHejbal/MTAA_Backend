@@ -50,9 +50,8 @@ io.on('connection', (socket) => {
       socket.to(relationId).emit('error', {userId, uuid});
       return;
     }
-    socket.to(relationId).emit('message', {userId, uuid});
+    socket.to(relationId).emit('message', {userId, id: uuid, text: text});
   })
-    io.to(relationId).emit('message', {text, userId});
   });
 
   socket.on('disconnect', () => {
