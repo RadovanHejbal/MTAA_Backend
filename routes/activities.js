@@ -43,12 +43,12 @@ router.get('/details/:id', (req, res) => {
   });
   
   // delete owned activity
-  router.delete('/owned/delete-activity', (req, res) =>
+  router.delete('/owned-activity/delete/:id', (req, res) =>
   {
     const deleteActivity = `
             DELETE 
             FROM owned_activities
-            WHERE id = '${req.body.id}'
+            WHERE id = '${req.params.id}'
             ;`;
     pool.query(deleteActivity, (err) =>
     {

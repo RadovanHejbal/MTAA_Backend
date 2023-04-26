@@ -127,4 +127,36 @@ router.put('/update-user/:id', (req, res) => {
   })
 })
 
+router.get('/users-for-admin', (req, res) => {
+  const updateQuery = `
+  SELECT 
+      users.id,
+      users.username
+  FROM users
+  WHERE users.role = 'user'
+  ;`
+  pool.query(updateQuery, (err, response) => {
+    if(err) {
+      res.status(410).json(err);
+      return;
+    }
+    res.send(response?.rows);
+  })
+})
+
+router.put('/upgrade/user-to-coach/:id', (req, res) => {
+  const upgradeQuery = `
+    UPDATE users
+    SET role = 'coach'
+    WHERE "id" = '${req.params.id}'
+    ;`
+  pool.query(upgradeQuery, (err, response) => {
+    if(err) {
+      res.status(410).json(err);
+      return;
+    }
+    res.send("OK");
+  })
+})
+
 module.exports = router;

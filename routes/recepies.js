@@ -49,12 +49,12 @@ router.put('/vote-update/:recepieId', (req, res) => {
 });
 
 // Delete recepie
-router.delete('/recepie-delete', (req, res) =>
+router.delete('/recepie-delete/:id', (req, res) =>
 {
   const delete_recepie_query = `
           DELETE 
           FROM Recepies
-          WHERE Recepies.id = '${req.body.id}'
+          WHERE Recepies.id = '${req.params.id}'
           ;`;
   pool.query(delete_recepie_query, (err) =>
   {

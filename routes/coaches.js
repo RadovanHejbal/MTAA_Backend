@@ -30,11 +30,11 @@ router.post('/coach-create', (req, res) =>
   const create_coache_query = `
           INSERT INTO Coaches ("id", user_id, specializaion, description)
           VALUES
-              (uuid_in(md5(random()::text || random()::text)::cstring), ${req.body.user_id}, '${req.body.specializaion}, '${req.body.description}')
+              (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.user_id}', '${req.body.specializaion}', '${req.body.description}')
           ;`;
   pool.query(create_coache_query, (err) =>
   {
-    if(err) res.send(err);
+    if(err) res.status(404).json(err);
     else res.send("OK");
   });
 });
