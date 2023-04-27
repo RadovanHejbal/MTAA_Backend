@@ -4,19 +4,25 @@ const { pool } = require('../db');
 
 
 // Get all coaches
-router.get('/', (req, res) =>
+router.get('/:user_id', (req, res) =>
 {
   const coaches_query = `
-          SELECT
-              Users.firstname,
-              Users.lastname,
-              Users.age,
-              Coaches.id,
-              Coaches.specializaion,
-              Coaches.description
-          FROM Coaches
-          JOIN Users ON Users.id = Coaches.user_id
-          ;`;
+      SELECT
+          Users.firstname,
+          Users.lastname,
+          Users.age,
+          Coaches.id,
+          Coaches.specializaion,
+          Coaches.description
+      FROM Coaches
+      JOIN Users ON Users.id = Coaches.user_id
+      WHERE Coaches.id NOT IN (
+            SELECT 
+                Relations.coach_id
+            FROM Relations
+            WHERE Relations.user_id = '${req.params.user_id}'
+      )
+      ;`;
   pool.query(coaches_query, (err, response) =>
   {
     if(err) res.send(err);
