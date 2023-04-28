@@ -31,6 +31,38 @@ router.post('/registration', (req, res) =>
     else res.send("OK");
   });
 });
+
+router.post('/token/create', (req, res) => {
+  const date = new Date(req.body.date);
+  const formattedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString();
+  pool.query(`INSERT INTO tokens ("id", user_id, expiration_date) VALUES (uuid_in(md5(random()::text || random()::text)::cstring), '${req.body.id}', '${formattedDate}')
+   RETURNING *`, (err, response) => {
+    if(err) {
+      res.status(404).json(err);
+      return;
+    }
+    res.send(response.rows[0]);
+   })
+});
+
+router.get(`/get/:id`, (req, res) => {
+  pool.query(`SELECT * FROM users WHERE "id" = '${req.params.id}'`, (err, response) => {
+    if(err || response.rowCount == 0) {
+      res.status(404).json(err);
+      return;
+    }
+    res.send(response.rows[0]);
+  })
+})
+
+router.get('/token/:id', (req, res) => {
+  pool.query(`SELECT user_id FROM tokens WHERE "id" = '${req.params.id}'`, (err, response) => {
+    if(err || response.rowCount == 0) {
+      res.status(404).json(err);
+    }
+    res.send(response.rows[0]);
+  })
+})
   
 // Daily kcal, protain, carbs, fat from meals
 router.get('/daily/meals/:date/:userid', (req, res) =>
