@@ -32,6 +32,7 @@ router.post('/registration', (req, res) =>
   });
 });
 
+// create authentication token
 router.post('/token/create', (req, res) => {
   const date = new Date(req.body.date);
   const formattedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString();
@@ -45,6 +46,7 @@ router.post('/token/create', (req, res) => {
    })
 });
 
+// get user with id
 router.get(`/get/:id`, (req, res) => {
   pool.query(`SELECT * FROM users WHERE "id" = '${req.params.id}'`, (err, response) => {
     if(err || response.rowCount == 0) {
@@ -55,10 +57,35 @@ router.get(`/get/:id`, (req, res) => {
   })
 })
 
+// authenticagtion token get user
 router.get('/token/:id', (req, res) => {
   pool.query(`SELECT user_id FROM tokens WHERE "id" = '${req.params.id}'`, (err, response) => {
     if(err || response.rowCount == 0) {
       res.status(404).json(err);
+    }
+    res.send(response.rows[0]);
+  })
+})
+
+// create expo token
+router.post('/expo/create', (req, res) => {
+  pool.query(`INSERT INTO pushtokens (token, user_id) VALUES ('${req.body.token}', '${req.body.id}')
+              ON CONFLICT (user_id) DO UPDATE SET token = EXCLUDED.token;`, (err, response) => {
+    if(err) {
+      console.log(err);
+      res.status(408).json(err);
+      return;
+    }
+    res.send(response.rows);
+  })
+})
+
+// get expo token
+router.get('/expo/:id', (req, res) => {
+  pool.query(`SELECT * FROM pushtokens WHERE user_id = '${req.params.id}'`, (err, response) => {
+    if(err || response.rowCount == 0) {
+      res.status(404).json(err);
+      return;
     }
     res.send(response.rows[0]);
   })
