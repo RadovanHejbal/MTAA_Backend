@@ -2,6 +2,7 @@ const bodyParser = require('body-parser');
 const express = require("express");
 const app = express();
 const http = require('http');
+const axios = require('axios');
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 const { pool } = require('./db');
@@ -50,7 +51,24 @@ io.on('connection', (socket) => {
       socket.to(relationId).emit('error', {userId, uuid});
       return;
     }
+    
     socket.to(relationId).emit('message', {userId, id: uuid, text: text});
+  })
+  
+  pool.query(`SELECT pushtokens.user_id, pushtokens.token FROM relations JOIN coaches ON (relations.coach_id = coaches.id) JOIN pushtokens ON (relations.user_id = pushtokens.user_id OR coaches.user_id = pushtokens.user_id) WHERE relations.id = '${relationId}'`, (err, response) => {
+    if(err || response.rowCount == 0) {
+      return;
+    }
+    const userToPush = response.rows.filter(el => el.user_id != userId);
+
+    if(userToPush.length == 0) {
+      return;
+    }
+    axios.post('https://exp.host/--/api/v2/push/send', {
+                to: userToPush[0].token,
+                title: 'New Message',
+                body: text
+    })
   })
   });
 

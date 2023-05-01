@@ -46,6 +46,17 @@ router.post('/token/create', (req, res) => {
    })
 });
 
+// delete authentication token
+router.delete('/token/delete/:token', (req, res) => {
+  pool.query(`DELETE FROM tokens WHERE id = '${req.params.token}';`, (err, response) => {
+    if (err) {
+      res.status(410).json(err);
+      return;
+    }
+    res.send("OK");
+  })
+})
+
 // get user with id
 router.get(`/get/:id`, (req, res) => {
   pool.query(`SELECT * FROM users WHERE "id" = '${req.params.id}'`, (err, response) => {
@@ -77,6 +88,17 @@ router.post('/expo/create', (req, res) => {
       return;
     }
     res.send(response.rows);
+  })
+})
+
+// delete expo token
+router.delete('/expo/delete/:token', (req, res) => {
+  pool.query(`DELETE FROM pushtokens WHERE token = '${req.params.token}'`, (err, response) => {
+    if(err) {
+      res.status(410).json(err);
+      return;
+    }
+    res.send("OK");
   })
 })
 
