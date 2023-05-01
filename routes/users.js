@@ -83,7 +83,6 @@ router.post('/expo/create', (req, res) => {
   pool.query(`INSERT INTO pushtokens (token, user_id) VALUES ('${req.body.token}', '${req.body.id}')
               ON CONFLICT (user_id) DO UPDATE SET token = EXCLUDED.token;`, (err, response) => {
     if(err) {
-      console.log(err);
       res.status(408).json(err);
       return;
     }
